@@ -1,1 +1,3 @@
-# Working
+# Working directory
+
+Contains basically everything

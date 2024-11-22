@@ -5,23 +5,35 @@ import fileOperations
 class DNAOperations:
     def __init__(self, sequence):
         self.sequence = sequence
-        self.table = self.to_list()
-        self.codons = self.to_codone()
+        self.table = self.sequence_to_list()
+        self.codons = self.sequence_to_codons()
+
+    '''
+    FUNCTION 'calidate_sequence' - checks if the input string contains only the specified characters
+    INPUT - string (variable name: sequence)
+    OUTPUT - None
+    '''
+
+    def validate_sequence(self):
+        valid_nucleotides = {'A', 'C', 'G', 'T'}
+        for nuc in self.sequence:
+            if nuc not in valid_nucleotides:
+                raise ValueError(f"Invalid nucleotide {nuc} in sequence")
 
     '''
     FUNCTION 'to_list' - converts string to list
     INPUT - string (variable name: sequence)
-    OUTPUT - list (variable name: sequence)
+    OUTPUT - list (variable name: undefined)
     '''
-    def to_list(self):
-        return list(self.sequence)
+    def sequence_to_list(self):
+        return list(self.sequence.strip().upper()) 
     
     '''
     FUNCTION 'to_codone' - converts string to list
     INPUT - list (variable name: sequence)
-    OUTPUT - list (variable name: sequence)
+    OUTPUT - list (variable name: undefined)
     '''    
-    def to_codone(self):
+    def sequence_to_codons(self):
         return [self.sequence[i:i+3] for i in range(0, len(self.sequence), 3)]
 
     '''
@@ -61,7 +73,7 @@ class DNAOperations:
         return trans
     
     '''
-    FUNCTION 'transcribe_dna_to_rna' - finds a RNA strand corresponding to declared DNA strand
+    FUNCTION 'complement_dna' - finds a complementary DNA strand, for the one specified by the 
     INPUT - list (variable name: table)
     OUTPUT - list (variable name: revdna)
     '''
@@ -76,13 +88,10 @@ class DNAOperations:
         return revdna
         
     def gc_content(self):
-        gc_contents = 0
-        if len(self.table) == 0:
+        if not self.table: #Checking if the table is not empty
             return 0
-        count_c = self.table.count('C')
-        count_g = self.table.count('G')
-        gc_content = round(100 * (count_c + count_g) / len(self.table), 6)
-        return gc_content
     
+        gc_count = sum(1 for nuc in self.table if nuc in ['G', 'C'])
 
-    '''HASHAS'''
+        return round(100 * gc_count / len(self.table), 6) #Rounding up to 6 decimal places
+    

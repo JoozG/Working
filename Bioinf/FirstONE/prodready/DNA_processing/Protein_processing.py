@@ -1,46 +1,102 @@
-import stringOperations
-import fileOperations
-
-#Protein_processing
-
 class ProteinOperations:
-
-    AMINO_ACIDS_DICT = {
-        "Ala": {"symbol": "A", "property1": "value1", "property2": "value2"},
-        "Ile": {"symbol": "I", "property1": "value1", "property2": "value2"},
-        "Arg": {"symbol": "R", "property1": "value1", "property2": "value2"},
-        "Leu": {"symbol": "L", "property1": "value1", "property2": "value2"},
-        "Asn": {"symbol": "N", "property1": "value1", "property2": "value2"},
-        "Lys": {"symbol": "K", "property1": "value1", "property2": "value2"},
-        "Asp": {"symbol": "D", "property1": "value1", "property2": "value2"},
-        "Met": {"symbol": "M", "property1": "value1", "property2": "value2"},
-        "Phe": {"symbol": "F", "property1": "value1", "property2": "value2"},
-        "Cys": {"symbol": "C", "property1": "value1", "property2": "value2"},
-        "Pro": {"symbol": "P", "property1": "value1", "property2": "value2"},
-        "Gln": {"symbol": "Q", "property1": "value1", "property2": "value2"},
-        "Ser": {"symbol": "S", "property1": "value1", "property2": "value2"},
-        "Glu": {"symbol": "E", "property1": "value1", "property2": "value2"},
-        "Thr": {"symbol": "T", "property1": "value1", "property2": "value2"},
-        "Trp": {"symbol": "W", "property1": "value1", "property2": "value2"},
-        "Gly": {"symbol": "G", "property1": "value1", "property2": "value2"},
-        "Tyr": {"symbol": "Y", "property1": "value1", "property2": "value2"},
-        "His": {"symbol": "H", "property1": "value1", "property2": "value2"},
-        "Val": {"symbol": "V", "property1": "value1", "property2": "value2"},
-        "STOP": {"symbol": "|STOP|", "property1": "value1", "property2": "value2"}
+    # Tablica mas molekularnych aminokwasów (w daltonach)
+    AMINO_ACID_MASSES = {
+        'A': 89.09,  # Alanine
+        'R': 174.2,  # Arginine
+        'N': 132.12, # Asparagine
+        'D': 133.1,  # Aspartic acid
+        'C': 121.16, # Cysteine
+        'E': 147.13, # Glutamic acid
+        'Q': 146.15, # Glutamine
+        'G': 75.07,  # Glycine
+        'H': 155.16, # Histidine
+        'I': 131.18, # Isoleucine
+        'L': 131.18, # Leucine
+        'K': 146.19, # Lysine
+        'M': 149.21, # Methionine
+        'F': 165.19, # Phenylalanine
+        'P': 115.13, # Proline
+        'S': 105.09, # Serine
+        'T': 119.12, # Threonine
+        'W': 204.23, # Tryptophan
+        'Y': 181.19, # Tyrosine
+        'V': 117.15  # Valine
     }
-
+    
     def __init__(self, sequence):
-        self.sequence = sequence
-        self.table = self.tolist()
-
-
+        self.sequence = sequence.upper()
+        self.amino_acid_list = self.sequence_to_list()
+    
     '''
     FUNCTION 'to_list' - converts string to list
     INPUT - string (variable name: sequence)
-    OUTPUT - list (variable name: sequence)
+    OUTPUT - list of single-character amino acid codes
     '''
-    def to_list(self):
-        return list(self.sequence)
-
-
+    def sequence_to_list(self):
+        return list(self.sequence.strip().upper())    
+    '''
+    FUNCTION 'validate_sequence' - checks if the sequence contains only valid amino acid codes
+    INPUT - string (self.sequence)
+    OUTPUT - boolean
+    '''
+    def validate_sequence(self):
+        valid_amino_acids = set(self.AMINO_ACID_MASSES.keys())
+        invalid_chars = [aa for aa in self.sequence if aa not in valid_amino_acids]
+        if invalid_chars:
+            raise ValueError(f"Invalid amino acid(s) found: {invalid_chars}")
+        return True
     
+    '''
+    FUNCTION 'amino_acid_count' - counts occurrences of each amino acid
+    INPUT - list of amino acids
+    OUTPUT - dictionary with counts
+    '''
+    def amino_acid_count(self):
+        counts = {aa: 0 for aa in self.AMINO_ACID_MASSES.keys()}
+        for aa in self.amino_acid_list:
+            if aa in counts:
+                counts[aa] += 1
+        return counts
+
+    '''
+    FUNCTION 'molecular_weight' - calculates the molecular weight of the polypeptide
+    INPUT - list of amino acids
+    OUTPUT - float (molecular weight in daltons)
+    '''
+    def molecular_weight(self):
+        total_weight = sum(self.AMINO_ACID_MASSES.get(aa, 0) for aa in self.amino_acid_list)
+        return round(total_weight, 2)
+    
+    '''
+    FUNCTION 'isoelectric_point' - simplistic isoelectric point calculation (based on average pKa)
+    INPUT - list of amino acids
+    OUTPUT - float (estimated pI)
+    '''
+    def isoelectric_point(self):
+        acidic_residues = {'D': 3.9, 'E': 4.3}
+        basic_residues = {'K': 10.5, 'R': 12.5, 'H': 6.0}
+        
+        total_acidic = sum(self.amino_acid_list.count(aa) * pKa for aa, pKa in acidic_residues.items())
+        total_basic = sum(self.amino_acid_list.count(aa) * pKa for aa, pKa in basic_residues.items())
+        
+        # Simplified pI calculation (not fully accurate, for educational purposes)
+        if total_acidic + total_basic == 0:
+            return 7.0  # Neutral point for simplicity
+        return round((total_acidic + total_basic) / (len(acidic_residues) + len(basic_residues)), 2)
+
+    '''
+    FUNCTION 'hydrophobicity_score' - calculates the hydrophobicity score of the sequence
+    INPUT - list of amino acids
+    OUTPUT - float (average hydrophobicity score)
+    '''
+    def hydrophobicity_score(self):
+        hydrophobicity = {
+            'A': 1.8, 'C': 2.5, 'D': -3.5, 'E': -3.5, 'F': 2.8, 
+            'G': -0.4, 'H': -3.2, 'I': 4.5, 'K': -3.9, 'L': 3.8,
+            'M': 1.9, 'N': -3.5, 'P': -1.6, 'Q': -3.5, 'R': -4.5, 
+            'S': -0.8, 'T': -0.7, 'V': 4.2, 'W': -0.9, 'Y': -1.3
+        }
+        total_score = sum(hydrophobicity.get(aa, 0) for aa in self.amino_acid_list)
+        return round(total_score / len(self.amino_acid_list), 2) if self.amino_acid_list else 0
+
+

@@ -83,3 +83,6 @@ class DNAOperations:
         count_g = self.table.count('G')
         gc_content = round(100 * (count_c + count_g) / len(self.table), 6)
         return gc_content
+    
+
+    '''HASHAS'''

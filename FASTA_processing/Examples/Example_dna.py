@@ -1,10 +1,13 @@
 import numpy as np
 
-from DNA_processing import DNAOperations, stringOperations, fileOperations, RNAProteinConverter
+from fasta_processing.dna_processing import DNAOperations
+from fasta_processing.string_processing import stringOperations
+from fasta_processing.file_processing import fileOperations
+from fasta_processing.rna2protein_converter import RNAProteinConverter
 
 def main():
     # Load the .fasta file
-    fasta_reader = fileOperations.FASTAReader(r'C:\Users\Admin\Documents\Coding\Bioinf\FirstONE\prodready\DNA_processing\sampledata\homosapiens_brca1.fasta')
+    fasta_reader = fileOperations.FASTAReader(r'C:\Users\Admin\Documents\Coding\Bioinf\FirstONE\prodready\DNA_processing\sampledata\example-dna.fasta')
     sequences = fasta_reader.sequences
 
     amacidCounter = stringOperations.SubstringFinder

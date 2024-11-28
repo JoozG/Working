@@ -1,15 +1,15 @@
-import stringOperations
-import RNAProteinConverter
-import fileOperations
+import string_processing as string_processing
+import rna2protein_converter as rna2protein_converter
+import file_processing as file_processing
 
-class DNAOperations:
+class dnaOperations:
     def __init__(self, sequence):
         self.sequence = sequence
         self.table = self.sequence_to_list()
         self.codons = self.sequence_to_codons()
 
     '''
-    FUNCTION 'calidate_sequence' - checks if the input string contains only the specified characters
+    FUNCTION 'validate_sequence' - checks if the input string contains only the specified characters
     INPUT - string (variable name: sequence)
     OUTPUT - None
     '''
@@ -86,7 +86,12 @@ class DNAOperations:
         }
         revdna = [complement[nuc] for nuc in self.table][::-1]
         return revdna
-        
+
+    '''
+    FUNCTION 'gc_content' - returns the gc content of a string  
+    INPUT - list (variable name: table)
+    OUTPUT - list (variable name: revdna)
+    '''       
     def gc_content(self):
         if not self.table: #Checking if the table is not empty
             return 0
@@ -94,4 +99,3 @@ class DNAOperations:
         gc_count = sum(1 for nuc in self.table if nuc in ['G', 'C'])
 
         return round(100 * gc_count / len(self.table), 6) #Rounding up to 6 decimal places
-    

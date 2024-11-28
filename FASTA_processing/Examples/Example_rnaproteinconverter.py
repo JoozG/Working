@@ -1,4 +1,4 @@
-from RNAProteinConverter import RNAConverter
+from fasta_processing.rna2protein_converter import RNAConverter
 
 rna_sequence = "AUGGCCUUUAAUGGGAUG"
 converter = RNAConverter(rna_sequence)

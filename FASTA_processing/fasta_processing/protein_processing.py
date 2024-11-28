@@ -1,4 +1,4 @@
-class ProteinOperations:
+class proteinOperations:
     # Tablica mas molekularnych aminokwasów (w daltonach)
     AMINO_ACID_MASSES = {
         'A': 89.09,  # Alanine

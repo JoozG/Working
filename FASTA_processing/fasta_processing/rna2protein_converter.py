@@ -1,5 +1,5 @@
     
-class RNAConverter:
+class rnaConverter:
     '''
     The dictionary 'CODON_DICT' below will be reversed shortly after being declared in the code to improve execution time.
     You may wonder why I reversed the dictionary instead of declaring it reversed in the first place.
@@ -93,7 +93,7 @@ class RNAConverter:
         return codon_usage
 
     '''
-    FUNCTION 'export_results' - exports analysis result to a txt file
+    FUNCTION 'export_results' - exports analysis result to a .txt file
     INPUT - string (filename - path to the output file)
     OUTPUT - None
     '''

@@ -1,0 +1,12 @@
+# sys and temp files
+.DS_Store
+Thumbs.db
+
+# automatically generated python files
+__pycache__/
+*.pyc
+*.pyo
+
+# venvs
+env/
+venv/

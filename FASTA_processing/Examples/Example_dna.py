@@ -1,5 +1,7 @@
-import numpy as np
+import sys
+sys.path.append("..")
 
+import numpy as np
 from fasta_processing.dna_processing import DNAOperations
 from fasta_processing.string_processing import stringOperations
 from fasta_processing.file_processing import fileOperations

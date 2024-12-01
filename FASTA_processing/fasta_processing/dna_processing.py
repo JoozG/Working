@@ -1,7 +1,3 @@
-import string_processing as string_processing
-import rna2protein_converter as rna2protein_converter
-import file_processing as file_processing
-
 class dnaOperations:
     def __init__(self, sequence):
         self.sequence = sequence

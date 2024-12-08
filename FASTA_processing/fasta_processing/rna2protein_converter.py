@@ -41,8 +41,10 @@ class rnaConverter:
     OUTPUT - list (codone list)
     '''
     def split_into_codons(self):
+
         if len(self.rna_sequence) % 3 != 0:
             raise ValueError("RNA sequence length must be a multiple of 3.")
+        
         return [self.rna_sequence[i:i+3] for i in range(0, len(self.rna_sequence), 3)]
 
     '''
@@ -52,12 +54,15 @@ class rnaConverter:
     '''
     def rna_to_protein(self, stop_on_stop_codon=True):
         protein_sequence = []
+
         for codon in self.codons:
             amino_acid = self.REVERSED_CODON_DICT.get(codon, None)
+
             if amino_acid == "STOP" and stop_on_stop_codon:
                 break
             if amino_acid:
                 protein_sequence.append(amino_acid)
+
         return protein_sequence
 
     '''
@@ -71,13 +76,17 @@ class rnaConverter:
 
         for start_index in start_indices:
             protein_sequence = []
+
             for codon in self.codons[start_index:]:
                 amino_acid = self.REVERSED_CODON_DICT.get(codon, None)
+
                 if amino_acid == "STOP":
                     orfs.append(protein_sequence)
                     break
+
                 if amino_acid:
                     protein_sequence.append(amino_acid)
+
         return orfs
 
     '''
@@ -87,9 +96,11 @@ class rnaConverter:
     '''
     def analyze_codon_usage(self):
         codon_usage = {codon: 0 for codon in self.REVERSED_CODON_DICT.keys()}
+
         for codon in self.codons:
             if codon in codon_usage:
                 codon_usage[codon] += 1
+
         return codon_usage
 
     '''
@@ -98,12 +109,17 @@ class rnaConverter:
     OUTPUT - None
     '''
     def export_results(self, filename):
+
         with open(filename, "w") as f:
+
             f.write("Codon Usage:\n")
             codon_usage = self.analyze_codon_usage()
+
             for codon, count in codon_usage.items():
                 f.write(f"{codon}: {count}\n")
+
             f.write("\nOpen Reading Frames (ORFs):\n")
             orfs = self.find_open_reading_frames()
+
             for i, orf in enumerate(orfs, start=1):
                 f.write(f"ORF {i}: {' '.join(orf)}\n")

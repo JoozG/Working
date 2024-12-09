@@ -1,0 +1,10 @@
+Nucleotide usage:
+A: 9
+C: 8
+G: 10
+T: 10
+undefined: 0
+
+Complementary DNA strand: 5'-G-T-C-A-G-C-T-A-A-G-C-C-T-T-A-C-G-T-A-A-G-C-T-A-G-C-T-A-C-G-T-A-C-G-C-A-T-3'
+
+GC-content: 48.648649 %

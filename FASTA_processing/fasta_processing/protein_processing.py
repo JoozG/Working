@@ -26,6 +26,7 @@ class proteinOperations:
     def __init__(self, sequence):
         self.sequence = sequence.upper()
         self.amino_acid_list = self.sequence_to_list()
+        self.validate_sequence()
     
     '''
     FUNCTION 'to_list' - converts string to list
@@ -51,7 +52,7 @@ class proteinOperations:
     INPUT - list (self.amino_acid_list)
     OUTPUT - dictionary (with counts)
     '''
-    def amino_acid_count(self):
+    def count_amino_acids(self):
         counts = {aa: 0 for aa in self.AMINO_ACID_MASSES.keys()}
         for aa in self.amino_acid_list:
             if aa in counts:
@@ -99,4 +100,18 @@ class proteinOperations:
         total_score = sum(hydrophobicity.get(aa, 0) for aa in self.amino_acid_list)
         return round(total_score / len(self.amino_acid_list), 2) if self.amino_acid_list else 0
 
+    def export_results(self, filename):
 
+        with open(filename, "w") as f:
+
+            f.write("Amino-acid usage:\n")
+            aminoacid_usage = self.count_amino_acids()
+
+            for aa, count in aminoacid_usage.items():
+                f.write(f"{aa}: {count}\n")
+
+            f.write(f"\nMolecular weight: {self.molecular_weight()} Da\n")
+
+            f.write(f"\nCalculated isoelectric point: {self.isoelectric_point()}\n")
+
+            f.write(f"\nCalculated hydrophobicity score: {self.hydrophobicity_score()}\n")

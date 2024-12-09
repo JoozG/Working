@@ -1,0 +1,27 @@
+Amino-acid usage:
+A: 2
+R: 1
+N: 1
+D: 0
+C: 2
+E: 2
+Q: 1
+G: 3
+H: 2
+I: 0
+L: 4
+K: 1
+M: 0
+F: 3
+P: 1
+S: 1
+T: 1
+W: 0
+Y: 2
+V: 3
+
+Molecular weight: 3922.41 Da
+
+Calculated isoelectric point: 8.72
+
+Calculated hydrophobicity score: 0.3

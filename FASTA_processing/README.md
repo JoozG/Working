@@ -9,12 +9,12 @@ Available Modules      |
 _______________________|
 
 Currently, four modules are functional:
-    Three modules are designed to process input in the form of strings representing different biomolecules:
+    *Three modules are designed to process input in the form of strings representing different biomolecules:
             1. Deoxyribonucleic acids (DNA)
             2. Ribonucleic acids (RNA)
             3. Proteins
     
-    The fourth module handles input directly from files in the FASTA format.
+    *The fourth module handles input directly from files in the FASTA format.
 
 _______________________
 Planned Enhancements   |

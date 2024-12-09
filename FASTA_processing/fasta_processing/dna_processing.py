@@ -1,6 +1,7 @@
 class dnaOperations:
     def __init__(self, sequence):
         self.sequence = sequence
+        self.validate_sequence()
         self.table = self.sequence_to_list()
         self.codons = self.sequence_to_codons()
 
@@ -95,3 +96,18 @@ class dnaOperations:
         gc_count = sum(1 for nuc in self.table if nuc in ['G', 'C'])
 
         return round(100 * gc_count / len(self.table), 6) #Rounding up to 6 decimal places
+    
+    def export_results(self, filename):
+       
+       with open(filename, "w") as f:
+           f.write("Nucleotide usage:\n")
+           
+           nuc_counts = self.nuc_count()
+
+           for nuc, count in nuc_counts.items():
+                f.write(f"{nuc}: {count}\n")
+           compl_dna = self.complement_dna()
+
+           f.write(f"\nComplementary DNA strand: 5'-{'-'.join(compl_dna)}-3'\n") # 5' to 3' 
+
+           f.write(f"\nGC-content: {self.gc_content()} %")

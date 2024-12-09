@@ -40,13 +40,8 @@ def write_fasta(sequences, file_path, line_width=80):
                 file.write(sequence[i:i + line_width] + '\n')
 
 """
-    Filtruje sekwencje z pliku FASTA i zapisuje wynik w nowym pliku.
+    FUNCTION: 'filter_fasta' filters sequences and creates new file with filtered out sequences
 
-    Parameters:
-        input_file (str): Ścieżka do pliku wejściowego FASTA.
-        output_file (str): Ścieżka do pliku wyjściowego FASTA.
-        filter_func (function): Funkcja przyjmująca ID i sekwencję jako argumenty
-                                i zwracająca True, jeśli sekwencja ma zostać uwzględniona.
 """
 
 def filter_fasta(input_file, output_file, filter_func):
@@ -56,14 +51,8 @@ def filter_fasta(input_file, output_file, filter_func):
     write_fasta(filtered_sequences, output_file)
 
 """
-    Liczy liczbę sekwencji w pliku FASTA.
 
-    Parameters:
-        file_path (str): Ścieżka do pliku FASTA.
-
-    Returns:
-        int: Liczba sekwencji w pliku.
-    """
+"""
 
 def count_sequences(file_path):
     
@@ -72,13 +61,8 @@ def count_sequences(file_path):
 
 
 """
-    Dzieli plik FASTA na mniejsze pliki o określonej liczbie sekwencji.
 
-    Parameters:
-        input_file (str): Ścieżka do pliku wejściowego FASTA.
-        output_dir (str): Ścieżka do katalogu wyjściowego, gdzie zapisane zostaną podzielone pliki.
-        chunk_size (int): Maksymalna liczba sekwencji w jednym pliku wyjściowym.
-    """
+"""
 def split_fasta(input_file, output_dir, chunk_size):
     
     import os

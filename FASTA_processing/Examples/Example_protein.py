@@ -1,5 +1,7 @@
-from fasta_processing.protein_processing import proteinOperations
-from fasta_processing.file_processing import read_fasta
+from FASTA_processing.fasta_processing.protein_processing import proteinOperations
 
-proteins = read_fasta("FASTA_processing/sampledata/example-protein.fasta")
+protein_sequence = "FVNQHLCGSHLVEALYLVCGERGFFYTPKA"
 
+protein = proteinOperations(protein_sequence)
+
+protein.export_results(r"FASTA_processing\Examples\Results\results_protein.txt")

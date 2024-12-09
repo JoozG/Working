@@ -104,7 +104,7 @@ class proteinOperations:
 
         with open(filename, "w") as f:
 
-            f.write("Amino-acid usage:\n")
+            f.write("Protein usage:\n")
             aminoacid_usage = self.count_amino_acids()
 
             for aa, count in aminoacid_usage.items():

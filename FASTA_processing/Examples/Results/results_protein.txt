@@ -1,4 +1,4 @@
-Amino-acid usage:
+Protein usage:
 A: 2
 R: 1
 N: 1

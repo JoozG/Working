@@ -1,7 +1,7 @@
-from fasta_processing.rna2protein_converter import RNAConverter
+from FASTA_processing.fasta_processing.rna2protein_converter import rnaConverter
 
 rna_sequence = "AUGGCCUUUAAUGGGAUG"
-converter = RNAConverter(rna_sequence)
+converter = rnaConverter(rna_sequence)
 
 # Tłumaczenie RNA na białko
 protein = converter.rna_to_protein()
@@ -16,4 +16,4 @@ codon_usage = converter.analyze_codon_usage()
 print("Codon Usage:", codon_usage)
 
 # Eksport wyników
-converter.export_results(r"FirstONE\prodready\DNA_processing\Examples\analysis_results.txt")
+converter.export_results(r"FASTA_processing\Examples\Results\results_rna.txt")

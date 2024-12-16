@@ -1,4 +1,4 @@
-"FASTA_processing" is a private project aimed at developed into a fully functional python library.
+"FASTA_processing" is a private project aimed to be developed into a fully functional python library.
 
 # Status as of December 9, 2024 #
 

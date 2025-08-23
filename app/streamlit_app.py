@@ -109,4 +109,4 @@ if topn_kmers > 0:
 st.subheader("Eksport")
 st.download_button("Pobierz CSV", df.to_csv(index=False).encode("utf-8"), file_name="fasta_stats.csv", mime="text/csv")
 
-st.caption("Made with ❤️ Streamlit + Biopython")
+st.caption("Made with Streamlit + Biopython")

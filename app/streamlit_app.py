@@ -45,6 +45,32 @@ def get_sample_bytes(mode: str) -> bytes:
 
 st.set_page_config(page_title="FASTA Processing", page_icon="🧬", layout="wide")
 
+# ============= STYLE =============
+st.markdown(
+    """
+    <style>
+    /* Dimmed haeadlines */
+    h1, h2, h3 {
+        color: #1565C0;
+    }
+    /* Table style */
+    .stDataFrame {background-color: #ffffff; border: 1px solid #dce1e7;}
+    /* Buttons */
+    div.stButton > button {
+        background-color: #1E88E5;
+        color: white;
+        border-radius: 8px;
+        padding: 0.4em 1em;
+    }
+    div.stButton > button:hover {
+        background-color: #1565C0;
+        color: #e2e8f0;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # ============= SIDEBAR (left side-peek) =============
 with st.sidebar:
     st.header("📥 Input & options")

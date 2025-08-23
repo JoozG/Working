@@ -34,9 +34,9 @@ def build_html_report(title: str, sections: list[tuple[str, str]]) -> str:
     return "".join(parts)
 
 SAMPLE_PATHS = {
-    "DNA": pathlib.Path(__file__).resolve().parent.parent / "sampledata" / "example_dna.fasta",
-    "RNA": pathlib.Path(__file__).resolve().parent.parent / "sampledata" / "example_rna.fasta",
-    "Protein": pathlib.Path(__file__).resolve().parent.parent / "sampledata" / "example_protein.fasta",
+    "DNA": pathlib.Path(__file__).resolve().parent.parent / "sampledata" / "example-dna.fasta",
+    "RNA": pathlib.Path(__file__).resolve().parent.parent / "sampledata" / "example-rna.fasta",
+    "Protein": pathlib.Path(__file__).resolve().parent.parent / "sampledata" / "example-protein.fasta",
 }
 
 def get_sample_bytes(mode: str) -> bytes:

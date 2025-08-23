@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import sys
-from src.fasta_processing import read_fasta_bytes, dnaOperations, rnaConverter, proteinOperations
+from fasta_processing import read_fasta_bytes, dnaOperations, rnaConverter, proteinOperations
 
 st.set_page_config(page_title="FASTA Processing", page_icon="🧬", layout="wide")
 st.title("🧬 FASTA Processing – demo Twojej biblioteki")

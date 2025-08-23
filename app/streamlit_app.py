@@ -48,20 +48,31 @@ st.set_page_config(page_title="FASTA Processing", page_icon="🧬", layout="wide
 # ============= SIDEBAR (left side-peek) =============
 with st.sidebar:
     st.header("📥 Input & options")
-    upl = st.file_uploader(
-        "Upload FASTA file",
-        type=["fa", "fasta", "fna", "faa", "fas"],
-        help="One or more sequences in FASTA format.",
-    )
     mode = st.selectbox("Analysis mode", ["DNA", "RNA→Protein", "Protein"])
+
+    use_sample = st.toggle(
+        "Use sample dataset",
+        value=True,
+        help="If enabled, a built-in example is loaded instead of your file."
+    )
+
+    if not use_sample:
+        upl = st.file_uploader(
+            "Upload FASTA file",
+            type=["fa", "fasta", "fna", "faa", "fas"],
+            help="One or more sequences in FASTA format."
+        )
+    else:
+        upl = None  # we will read from sampledata/
 
     st.markdown("---")
     st.caption("Filters / charts")
     min_len = st.number_input("Min length", min_value=0, value=0, step=50)
     max_len = st.number_input("Max length (0 = no limit)", min_value=0, value=0, step=1000)
     bins = st.slider("Histogram bins", min_value=5, max_value=100, value=40)
-
     top_n = st.slider("Top N (codons/AA)", min_value=5, max_value=60, value=20)
+    st.markdown("---")
+    st.markdown("Developed by Michał Milewski")
 
 st.title("🧬 FASTA Processing — stats & visualization")
 
@@ -85,19 +96,31 @@ with st.expander("What is a FASTA file? Click to see format details.", expanded=
         """
     )
 
-if not upl:
-    st.info("Upload a FASTA file on the left to start.")
-    st.stop()
+# ===== Resolve data source (sample or user upload) =====
+if use_sample:
+    data_bytes = get_sample_bytes(mode)
+else:
+    if not upl:
+        st.info("Upload a FASTA file on the left, or enable the sample dataset.")
+        st.stop()
+    data_bytes = upl.read()
 
-# ============= LOAD =============
 @st.cache_data(show_spinner=False)
 def load_seqs(data: bytes) -> dict[str, str]:
     return read_fasta_bytes(data)
 
-seqs = load_seqs(upl.read())
+seqs = load_seqs(data_bytes)
 if not seqs:
-    st.error("No sequences found in the uploaded file.")
+    st.error("No sequences found.")
     st.stop()
+
+# (opcjonalnie) baner informacyjny
+if use_sample:
+    st.info(
+        "Showing analysis for sample dataset: **{}** (from `sampledata/`).".format(
+            "DNA" if mode=="DNA" else ("RNA" if mode.startswith("RNA") else "Protein")
+        )
+    )
 
 # ============= HELPERS =============
 def apply_length_filters(df: pd.DataFrame) -> pd.DataFrame:

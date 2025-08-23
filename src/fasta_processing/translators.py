@@ -30,10 +30,18 @@ class rnaConverter:
     }
 
     REVERSED_CODON_DICT = {codon: key for key, codons in CODON_DICT.items() for codon in codons}
+    AA3_TO_AA1 = {"Ala":"A","Ile":"I","Arg":"R","Leu":"L","Asn":"N","Lys":"K","Asp":"D","Met":"M",
+                  "Phe":"F","Cys":"C","Pro":"P","Gln":"Q","Ser":"S","Glu":"E","Thr":"T","Trp":"W",
+                  "Gly":"G","Tyr":"Y","His":"H","Val":"V","STOP":"*"}
 
-    def __init__(self, rna_sequence):
+    def __init__(self, rna_sequence: str):
         self.rna_sequence = rna_sequence.upper()
-        self.codons = self.split_into_codons()
+
+        if len(self.rna_sequence) % 3 != 0:
+            raise ValueError("RNA sequence length must be a multiple of 3.")
+            self.rna_sequence = self.rna_sequence[: (len(self.rna_sequence)//3)*3]
+
+        self.codons = [self.rna_sequence[i:i+3] for i in range(0, len(self.rna_sequence), 3)]
 
     '''
     FUNCTION 'split_into_codons' - splitting RNA sequence into codones
@@ -52,16 +60,19 @@ class rnaConverter:
     INPUT - list (self.codons)
     OUTPUT - list (protein sequence in a form of single characters)
     '''
-    def rna_to_protein(self, stop_on_stop_codon=True):
+    def rna_to_protein(self, stop_on_stop_codon: bool = True, one_letter: bool = True):
         protein_sequence = []
 
         for codon in self.codons:
-            amino_acid = self.REVERSED_CODON_DICT.get(codon, None)
+            aa3 = self.REVERSED_CODON_DICT.get(codon, None)
 
-            if amino_acid == "STOP" and stop_on_stop_codon:
-                break
-            if amino_acid:
-                protein_sequence.append(amino_acid)
+            if aa3 == "STOP":
+                if stop_on_stop_codon:
+                    break
+                protein_sequence.append("*" if one_letter else "STOP")
+
+            elif aa3:
+                protein_sequence.append(self.AA3_TO_AA1[aa3] if one_letter else aa3)
 
         return protein_sequence
 
@@ -78,14 +89,14 @@ class rnaConverter:
             protein_sequence = []
 
             for codon in self.codons[start_index:]:
-                amino_acid = self.REVERSED_CODON_DICT.get(codon, None)
+                aa3 = self.REVERSED_CODON_DICT.get(codon, None)
 
-                if amino_acid == "STOP":
+                if aa3 == "STOP":
                     orfs.append(protein_sequence)
                     break
 
-                if amino_acid:
-                    protein_sequence.append(amino_acid)
+                if aa3:
+                    protein_sequence.append(aa3)
 
         return orfs
 

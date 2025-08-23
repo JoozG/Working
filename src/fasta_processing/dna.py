@@ -6,9 +6,10 @@ class dnaOperations:
         self.codons = self.sequence_to_codons()
 
     '''
-    FUNCTION 'validate_sequence' - checks if the input string contains only the specified characters
-    INPUT - string (variable name: sequence)
-    OUTPUT - None
+    FUNCTION 'validate_sequence' - checks if the input string contains only the specified characters A/C/G/T
+
+    INPUT - string (self.sequence)
+    OUTPUT - None (raises ValueError if invalid character is found)
     '''
 
     def validate_sequence(self):
@@ -18,25 +19,28 @@ class dnaOperations:
                 raise ValueError(f"Invalid nucleotide {nuc} in sequence")
 
     '''
-    FUNCTION 'to_list' - converts string to list
-    INPUT - string (variable name: sequence)
-    OUTPUT - list (variable name: undefined)
+    FUNCTION 'sequence_to_list' - converts string to list
+
+    INPUT - string (self.equence)
+    OUTPUT - list
     '''
     def sequence_to_list(self):
         return list(self.sequence.strip().upper()) 
     
     '''
-    FUNCTION 'to_codone' - converts string to list
-    INPUT - list (variable name: sequence)
-    OUTPUT - list (variable name: undefined)
+    FUNCTION 'sequence_to_codons' - returns a list of codons (3-letter sequences)
+
+    INPUT - list (self.sequence)
+    OUTPUT - list 
     '''    
     def sequence_to_codons(self):
         return [self.sequence[i:i+3] for i in range(0, len(self.sequence), 3)]
 
     '''
-    FUNCTION 'nuc_count' - counts occurences of nucleobases
-    INPUT - list (variable name: table)
-    OUTPUT - dictionary (variable name: counts)
+    FUNCTION 'nuc_count' - counts occurences of nucleotides in a sequence
+
+    INPUT - list (self.table)
+    OUTPUT - dictionary (counts)
     '''
     def nuc_count(self):
         counts = {
@@ -55,8 +59,9 @@ class dnaOperations:
 
     '''
     FUNCTION 'transcribe_dna_to_rna' - finds a RNA strand corresponding to declared DNA strand
-    INPUT - list (variable name: table)
-    OUTPUT - list (variable name: trans)
+    
+    INPUT - list (self.table)
+    OUTPUT - list (trans)
     '''
     def transcribe_dna_to_rna(self):
         trans = []
@@ -70,11 +75,11 @@ class dnaOperations:
         return trans
     
     '''
-    FUNCTION 'complement_dna' - finds a complementary DNA strand, for the one specified by the 
-    INPUT - list (variable name: table)
-    OUTPUT - list (variable name: revdna)
+    FUNCTION 'reverse_complement' - finds a reverse-complementary DNA strand, for the one specified by the 
+    INPUT - list (self.table)
+    OUTPUT - list (revdna)
     '''
-    def complement_dna(self):
+    def reverse_complement(self):
         complement = {
             'A': 'T',
             'C': 'G',
@@ -85,9 +90,10 @@ class dnaOperations:
         return revdna
 
     '''
-    FUNCTION 'gc_content' - returns the gc content of a string  
-    INPUT - list (variable name: table)
-    OUTPUT - list (variable name: revdna)
+    FUNCTION 'gc_content' - calculates the GC content (up to 6 decimal places)
+
+    INPUT - list (self.table)
+    OUTPUT - float (gc content in percentage)
     '''       
     def gc_content(self):
         if not self.table: #Checking if the table is not empty
@@ -97,16 +103,25 @@ class dnaOperations:
 
         return round(100 * gc_count / len(self.table), 6) #Rounding up to 6 decimal places
     
+
+    
     def export_results(self, filename):
-       
-       with open(filename, "w") as f:
+        """
+        FUNCTION: 'export_results' - exports nucleotide counts, reverse-complement,
+        and GC content to a text file.
+
+        INPUT:  string (filename)
+        OUTPUT: None (creates a file with results)
+        """
+
+        with open(filename, "w") as f:
            f.write("Nucleotide usage:\n")
            
            nuc_counts = self.nuc_count()
 
            for nuc, count in nuc_counts.items():
                 f.write(f"{nuc}: {count}\n")
-           compl_dna = self.complement_dna()
+           compl_dna = self.reverse_complement()
 
            f.write(f"\nComplementary DNA strand: 5'-{'-'.join(compl_dna)}-3'\n") # 5' to 3' 
 

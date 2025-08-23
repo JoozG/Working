@@ -75,19 +75,21 @@ class dnaOperations:
         return trans
     
     '''
-    FUNCTION 'reverse_complement' - finds a reverse-complementary DNA strand, for the one specified by the 
+    FUNCTION 'complement' - finds a complementary DNA strand, not reversed
     INPUT - list (self.table)
-    OUTPUT - list (revdna)
+    OUTPUT - list 
+    '''
+    def complement(self):
+        comp = {'A':'T','C':'G','G':'C','T':'A'}
+        return [comp.get(n,'-') for n in self.table]
+
+    '''
+    FUNCTION 'reverse_complement' - finds a reverse-complementary DNA strand
+    INPUT - list (self.table)
+    OUTPUT - list 
     '''
     def reverse_complement(self):
-        complement = {
-            'A': 'T',
-            'C': 'G',
-            'G': 'C',
-            'T': 'A'
-        }
-        revdna = [complement[nuc] for nuc in self.table][::-1]
-        return revdna
+        return self.complement()[::-1]
 
     '''
     FUNCTION 'gc_content' - calculates the GC content (up to 6 decimal places)

@@ -1,5 +1,9 @@
 import streamlit as st
 import pandas as pd
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from fasta_processing import read_fasta_bytes, dnaOperations, rnaConverter, proteinOperations
 
 st.set_page_config(page_title="FASTA Processing", page_icon="🧬", layout="wide")

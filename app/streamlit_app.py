@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from collections import Counter
+import pathlib
 from fasta_processing import read_fasta_bytes, dnaOperations, rnaConverter, proteinOperations
 
 # ===== Helpers for preview & HTML export =====
@@ -32,6 +33,15 @@ def build_html_report(title: str, sections: list[tuple[str, str]]) -> str:
     parts.append("</body></html>")
     return "".join(parts)
 
+SAMPLE_PATHS = {
+    "DNA": pathlib.Path(__file__).resolve().parent.parent / "sampledata" / "example_dna.fasta",
+    "RNA": pathlib.Path(__file__).resolve().parent.parent / "sampledata" / "example_rna.fasta",
+    "Protein": pathlib.Path(__file__).resolve().parent.parent / "sampledata" / "example_protein.fasta",
+}
+
+def get_sample_bytes(mode: str) -> bytes:
+    key = "DNA" if mode == "DNA" else ("RNA" if mode.startswith("RNA") else "Protein")
+    return SAMPLE_PATHS[key].read_bytes()
 
 st.set_page_config(page_title="FASTA Processing", page_icon="🧬", layout="wide")
 
@@ -54,6 +64,26 @@ with st.sidebar:
     top_n = st.slider("Top N (codons/AA)", min_value=5, max_value=60, value=20)
 
 st.title("🧬 FASTA Processing — stats & visualization")
+
+with st.expander("What is a FASTA file? Click to see format details.", expanded=False):
+    st.markdown(
+        """
+        A FASTA file is a plain-text format used to store biological sequences (DNA, RNA, protein).
+
+        **Structure:**
+        - Each sequence starts with a header line beginning with `>` followed by an identifier (and optionally a description).
+        - The following lines contain the sequence itself (A/C/G/T or A/C/G/U for nucleotides, 20 letters for amino acids).
+        - Lines are usually wrapped at ~60–80 characters, but wrapping is not strictly required.
+
+        **Example (DNA):**
+        ```
+        >seq1 human mitochondrion
+        ATGCTACCTCCTCAAGTACATGAGCTGTTGGCAG
+        >seq2 E.coli plasmid fragment
+        GCGTATGCTAGCTGATCGATCGTAGCTAGCATCGATCG
+        ```
+        """
+    )
 
 if not upl:
     st.info("Upload a FASTA file on the left to start.")

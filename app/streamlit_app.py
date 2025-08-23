@@ -46,30 +46,46 @@ def get_sample_bytes(mode: str) -> bytes:
 st.set_page_config(page_title="FASTA Processing", page_icon="🧬", layout="wide")
 
 # ============= STYLE =============
-st.markdown(
-    """
-    <style>
-    /* Dimmed haeadlines */
-    h1, h2, h3 {
-        color: #1565C0;
-    }
-    /* Table style */
-    .stDataFrame {background-color: #ffffff; border: 1px solid #dce1e7;}
-    /* Buttons */
-    div.stButton > button {
-        background-color: #1E88E5;
-        color: white;
-        border-radius: 8px;
-        padding: 0.4em 1em;
-    }
-    div.stButton > button:hover {
-        background-color: #1565C0;
-        color: #e2e8f0;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("""
+<style>
+/* Hard-override Streamlit CSS variables */
+:root {
+  --primary-color: #1E88E5;
+  --text-color: #1F2937;
+  --background-color: #F5F7FA;
+  --secondary-background-color: #E3F2FD;
+}
+
+/* Headings */
+h1, h2, h3 { color: #1565C0; }
+
+/* Buttons (primary) */
+div.stButton > button[kind="primary"] {
+  background: #1E88E5;
+  color: #fff;
+  border-radius: 8px;
+}
+div.stButton > button[kind="primary"]:hover {
+  background: #1565C0;
+}
+
+/* Dataframe container */
+section[data-testid="stDataFrame"] {
+  background: #ffffff;
+  border: 1px solid #dce1e7;
+  border-radius: 8px;
+}
+
+/* Tabs underline accent */
+button[data-baseweb="tab"] {
+  color: #1F2937;
+}
+button[aria-selected="true"][data-baseweb="tab"] {
+  color: #1565C0;
+  border-bottom: 3px solid #1E88E5;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ============= SIDEBAR (left side-peek) =============
 with st.sidebar:

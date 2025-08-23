@@ -1,4 +1,5 @@
 [theme]
+base = "light"
 primaryColor = "#1E88E5"          #  buttons, sliders
 backgroundColor = "#F5F7FA"       #  background color
 secondaryBackgroundColor = "#E3F2FD" # sidebar color

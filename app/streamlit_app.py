@@ -7,6 +7,7 @@ import streamlit as st
 from collections import Counter
 import pathlib
 from fasta_processing import read_fasta_bytes, dnaOperations, rnaConverter, proteinOperations
+import altair as alt
 
 # ===== Helpers for preview & HTML export =====
 def wrap_seq(s: str, width: int = 60) -> str:
@@ -44,6 +45,23 @@ def get_sample_bytes(mode: str) -> bytes:
     return SAMPLE_PATHS[key].read_bytes()
 
 st.set_page_config(page_title="FASTA Processing", page_icon="🧬", layout="wide")
+
+def fixed_histogram(series: pd.Series, title: str, x_title: str, x_domain: tuple[int|float, int|float], maxbins: int = 40):
+    s = pd.Series(series).dropna().astype(float)
+    data = pd.DataFrame({"x": s.to_numpy()})
+    chart = (
+        alt.Chart(data)
+        .mark_bar()
+        .encode(
+            x=alt.X("x:Q",
+                    bin=alt.Bin(maxbins=int(maxbins)),
+                    scale=alt.Scale(domain=list(x_domain)),
+                    title=x_title),
+            y=alt.Y("count():Q", title="count")
+        )
+        .properties(title=title, width="container", height=240)
+    )
+    return chart
 
 # ============= STYLE =============
 st.markdown("""
@@ -178,18 +196,24 @@ if mode == "DNA":
     rows = []
     agg_counts = Counter()
     for sid, seq in seqs.items():
+        seq_u = seq.upper().strip()
+        length_raw = len(seq_u)
+        gc_val = None
+        counts = {"A": seq_u.count("A"), "C": seq_u.count("C"), "G": seq_u.count("G"), "T": seq_u.count("T")}
         try:
             dna = dnaOperations(seq)
-        except ValueError as e:
-            # skip invalid DNA record
-            continue
-        counts = dna.nuc_count()
+            gc_val = dna.gc_content()
+            counts = dna.nuc_count()
+
+        except Exception:
+            pass  # keep defaults
+
         agg_counts.update({k: counts.get(k, 0) for k in ("A", "C", "G", "T")})
         rows.append(
             {
                 "id": sid,
                 "length": len(seq),
-                "GC%": dna.gc_content(),
+                "GC%": gc_val,
                 "A": counts.get("A", 0),
                 "C": counts.get("C", 0),
                 "G": counts.get("G", 0),
@@ -234,13 +258,21 @@ if mode == "DNA":
     with t2:
         st.subheader("Length histogram")
         if len(df_f):
-            hist, edges = np.histogram(df_f["length"].to_numpy(), bins=bins)
-            st.bar_chart(pd.DataFrame({"count": hist}, index=pd.RangeIndex(len(hist))))
+            x_min, x_max = 0, int(df_f["length"].max())
+            st.altair_chart(
+                fixed_histogram(df_f["length"], "Length histogram", "sequence length (nt)", (x_min, x_max), maxbins=bins),
+                use_container_width=True
+            )
 
         st.subheader("GC% distribution")
         if len(df_f):
-            hist_gc, edges_gc = np.histogram(df_f["GC%"].to_numpy(), bins=bins, range=(0, 100))
-            st.bar_chart(pd.DataFrame({"count": hist_gc}, index=pd.RangeIndex(len(hist_gc))))
+            gc_series = df_f["GC%"].dropna()
+            if len(gc_series):
+                st.altair_chart(
+                    fixed_histogram(gc_series, "GC% distribution", "GC% (0–100)", (0, 100), maxbins=bins),
+                    use_container_width=True
+                )
+
 
         st.subheader("Global nucleotide composition")
         comp_df = pd.DataFrame.from_dict(agg_counts, orient="index", columns=["count"]).loc[["A","C","G","T"]]
@@ -275,11 +307,18 @@ elif mode == "RNA→Protein":
     codon_usage_global = Counter()
     orf_lengths = []
 
+    def fix_frame(rna_s: str) -> str:
+        rna_s = rna_s.upper().strip()
+        return rna_s[: (len(rna_s) // 3) * 3] 
+
     for sid, rna in seqs.items():
+        rna_fixed = fix_frame(rna)
         conv = rnaConverter(rna)
         # protein 1-letter for compactness
         protein_seq = "".join(conv.rna_to_protein(one_letter=True))
+        aa_len = len(protein_seq)
         codon_usage_global.update(conv.analyze_codon_usage())
+
         for orf in conv.find_open_reading_frames():
             orf_lengths.append(len(orf))
 
@@ -287,7 +326,7 @@ elif mode == "RNA→Protein":
             {
                 "id": sid,
                 "rna_len": len(conv.rna_sequence),
-                "aa_len": len(protein_seq),
+                "aa_len": aa_len,
                 "protein (1-letter)": protein_seq[:200] + ("..." if len(protein_seq) > 200 else ""),
             }
         )
@@ -298,7 +337,7 @@ elif mode == "RNA→Protein":
     if min_len > 0:
         df_f = df_f[df_f["aa_len"] >= min_len]
     if max_len > 0:
-        df_f = df_f[df_f["aa_len"] <= max_len] if max_len > 0 else df_f
+        df_f = df_f[df_f["aa_len"] <= max_len]
 
     t1, t2, t3 = st.tabs(["Summary", "Distributions", "Details"])
 
@@ -312,8 +351,11 @@ elif mode == "RNA→Protein":
     with t2:
         st.subheader("Protein length histogram")
         if len(df_f):
-            hist, edges = np.histogram(df_f["aa_len"].to_numpy(), bins=bins)
-            st.bar_chart(pd.DataFrame({"count": hist}, index=pd.RangeIndex(len(hist))))
+            x_min, x_max = 0, int(df_f["aa_len"].max())
+            st.altair_chart(
+                fixed_histogram(df_f["aa_len"], "Protein length histogram", "protein length (aa)", (x_min, x_max), maxbins=bins),
+                use_container_width=True
+            )
 
         st.subheader(f"Top {top_n} codons")
         if codon_usage_global:
@@ -323,9 +365,14 @@ elif mode == "RNA→Protein":
             st.bar_chart(codon_df)
 
         st.subheader("ORF length histogram")
+        # ORF length
         if orf_lengths:
-            hist_orf, edges_orf = np.histogram(np.array(orf_lengths), bins=bins)
-            st.bar_chart(pd.DataFrame({"count": hist_orf}, index=pd.RangeIndex(len(hist_orf))))
+            s_orf = pd.Series(orf_lengths, dtype=float)
+            x_min, x_max = 0, int(s_orf.max())
+            st.altair_chart(
+                fixed_histogram(s_orf, "ORF length histogram", "ORF length (aa)", (x_min, x_max), maxbins=bins),
+                use_container_width=True
+            )
 
     with t3:
         st.download_button(
@@ -352,23 +399,31 @@ elif mode == "RNA→Protein":
 else:  # Protein
     rows = []
     aa_global = Counter()
+    valid_aa = set("ACDEFGHIKLMNPQRSTVWY")
 
     for sid, aa in seqs.items():
+        aa_u = aa.strip().upper()
+        length_raw = len(aa_u)  # raw length, no filtering
+        metrics = {"MW (Da)": None, "pI (approx)": None, "Hydrophobicity": None}
+        counts = Counter(ch for ch in aa_u if ch in valid_aa)
+
         try:
-            p = proteinOperations(aa)
-        except ValueError:
-            continue
-        counts = p.count_amino_acids()
+            p = proteinOperations(aa_u)
+            metrics["MW (Da)"] = p.molecular_weight()
+            metrics["pI (approx)"] = p.isoelectric_point()
+            metrics["Hydrophobicity"] = p.hydrophobicity_score()
+            counts = Counter(p.count_amino_acids())
+        except Exception:
+            pass  # keeps metrics as None, counts as-is
+
         aa_global.update(counts)
-        rows.append(
-            {
-                "id": sid,
-                "length": len(aa),
-                "MW (Da)": p.molecular_weight(),
-                "pI (approx)": p.isoelectric_point(),
-                "Hydrophobicity": p.hydrophobicity_score(),
-            }
-        )
+        rows.append({
+            "id": sid,
+            "length": length_raw,
+            "MW (Da)": metrics["MW (Da)"],
+            "pI (approx)": metrics["pI (approx)"],
+            "Hydrophobicity": metrics["Hydrophobicity"],
+        })
 
     df = pd.DataFrame(rows).sort_values("length", ascending=False).reset_index(drop=True)
     df_f = apply_length_filters(df)
@@ -386,8 +441,11 @@ else:  # Protein
     with t2:
         st.subheader("Protein length histogram")
         if len(df_f):
-            hist, edges = np.histogram(df_f["length"].to_numpy(), bins=bins)
-            st.bar_chart(pd.DataFrame({"count": hist}, index=pd.RangeIndex(len(hist))))
+            x_min, x_max = 0, int(df_f["length"].max())
+            st.altair_chart(
+                fixed_histogram(df_f["length"], "Protein length histogram", "protein length (aa)", (x_min, x_max), maxbins=bins),
+                use_container_width=True
+            )
 
         st.subheader(f"Top {top_n} amino acids")
         if aa_global:
@@ -422,4 +480,4 @@ else:  # Protein
         st.download_button("Download HTML report", html, file_name="protein_report.html", mime="text/html")
 
 
-st.caption("UI: Streamlit · Core logic: your `fasta_processing` package")
+st.caption("UI: Streamlit · Core logic: `fasta_processing` package")

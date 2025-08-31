@@ -46,23 +46,6 @@ def get_sample_bytes(mode: str) -> bytes:
 
 st.set_page_config(page_title="FASTA Processing", page_icon="🧬", layout="wide")
 
-def fixed_histogram(series: pd.Series, title: str, x_title: str, x_domain: tuple[int|float, int|float], maxbins: int = 40):
-    s = pd.Series(series).dropna().astype(float)
-    data = pd.DataFrame({"x": s.to_numpy()})
-    chart = (
-        alt.Chart(data)
-        .mark_bar()
-        .encode(
-            x=alt.X("x:Q",
-                    bin=alt.Bin(maxbins=int(maxbins)),
-                    scale=alt.Scale(domain=list(x_domain)),
-                    title=x_title),
-            y=alt.Y("count():Q", title="count")
-        )
-        .properties(title=title, width="container", height=240)
-    )
-    return chart
-
 # ============= STYLE =============
 st.markdown("""
 <style>
@@ -191,6 +174,40 @@ def apply_length_filters(df: pd.DataFrame) -> pd.DataFrame:
         out = out[out["length"] <= max_len]
     return out
 
+def length_barchart(series: pd.Series, title: str, x_title: str):
+    """
+    Draw a bar chart of exact integer sequence lengths.
+    """
+    counts = series.value_counts().sort_index()
+    data = pd.DataFrame({"length": counts.index, "count": counts.values})
+    chart = (
+        alt.Chart(data)
+        .mark_bar()
+        .encode(
+            x=alt.X("length:O", title=x_title),  # O = ordinal, dzięki temu wartości są dyskretne
+            y=alt.Y("count:Q", title="count")
+        )
+        .properties(title=title, width="container", height=300)
+    )
+    return chart
+
+def fixed_histogram(series: pd.Series, title: str, x_title: str, x_domain: tuple[int|float, int|float], maxbins: int = 40):
+    s = pd.Series(series).dropna().astype(float)
+    data = pd.DataFrame({"x": s.to_numpy()})
+    chart = (
+        alt.Chart(data)
+        .mark_bar()
+        .encode(
+            x=alt.X("x:Q",
+                    bin=alt.Bin(maxbins=int(maxbins)),
+                    scale=alt.Scale(domain=list(x_domain)),
+                    title=x_title),
+            y=alt.Y("count():Q", title="count")
+        )
+        .properties(title=title, width="container", height=240)
+    )
+    return chart
+
 # ============= DNA MODE =============
 if mode == "DNA":
     rows = []
@@ -258,9 +275,8 @@ if mode == "DNA":
     with t2:
         st.subheader("Length histogram")
         if len(df_f):
-            x_min, x_max = 0, int(df_f["length"].max())
             st.altair_chart(
-                fixed_histogram(df_f["length"], "Length histogram", "sequence length (nt)", (x_min, x_max), maxbins=bins),
+                length_barchart(df_f["length"], "DNA sequence length distribution", "length (nt)"),
                 use_container_width=True
             )
 
@@ -351,9 +367,8 @@ elif mode == "RNA→Protein":
     with t2:
         st.subheader("Protein length histogram")
         if len(df_f):
-            x_min, x_max = 0, int(df_f["aa_len"].max())
             st.altair_chart(
-                fixed_histogram(df_f["aa_len"], "Protein length histogram", "protein length (aa)", (x_min, x_max), maxbins=bins),
+                length_barchart(df_f["aa_len"], "Protein length distribution", "length (aa)"),
                 use_container_width=True
             )
 
@@ -365,12 +380,10 @@ elif mode == "RNA→Protein":
             st.bar_chart(codon_df)
 
         st.subheader("ORF length histogram")
-        # ORF length
         if orf_lengths:
-            s_orf = pd.Series(orf_lengths, dtype=float)
-            x_min, x_max = 0, int(s_orf.max())
+            s_orf = pd.Series(orf_lengths)
             st.altair_chart(
-                fixed_histogram(s_orf, "ORF length histogram", "ORF length (aa)", (x_min, x_max), maxbins=bins),
+                length_barchart(s_orf, "ORF length distribution", "length (aa)"),
                 use_container_width=True
             )
 
@@ -399,31 +412,23 @@ elif mode == "RNA→Protein":
 else:  # Protein
     rows = []
     aa_global = Counter()
-    valid_aa = set("ACDEFGHIKLMNPQRSTVWY")
 
     for sid, aa in seqs.items():
-        aa_u = aa.strip().upper()
-        length_raw = len(aa_u)  # raw length, no filtering
-        metrics = {"MW (Da)": None, "pI (approx)": None, "Hydrophobicity": None}
-        counts = Counter(ch for ch in aa_u if ch in valid_aa)
-
         try:
-            p = proteinOperations(aa_u)
-            metrics["MW (Da)"] = p.molecular_weight()
-            metrics["pI (approx)"] = p.isoelectric_point()
-            metrics["Hydrophobicity"] = p.hydrophobicity_score()
-            counts = Counter(p.count_amino_acids())
-        except Exception:
-            pass  # keeps metrics as None, counts as-is
-
+            p = proteinOperations(aa)
+        except ValueError:
+            continue
+        counts = p.count_amino_acids()
         aa_global.update(counts)
-        rows.append({
-            "id": sid,
-            "length": length_raw,
-            "MW (Da)": metrics["MW (Da)"],
-            "pI (approx)": metrics["pI (approx)"],
-            "Hydrophobicity": metrics["Hydrophobicity"],
-        })
+        rows.append(
+            {
+                "id": sid,
+                "length": len(aa),
+                "MW (Da)": p.molecular_weight(),
+                "pI (approx)": p.isoelectric_point(),
+                "Hydrophobicity": p.hydrophobicity_score(),
+            }
+        )
 
     df = pd.DataFrame(rows).sort_values("length", ascending=False).reset_index(drop=True)
     df_f = apply_length_filters(df)
@@ -441,12 +446,11 @@ else:  # Protein
     with t2:
         st.subheader("Protein length histogram")
         if len(df_f):
-            x_min, x_max = 0, int(df_f["length"].max())
             st.altair_chart(
-                fixed_histogram(df_f["length"], "Protein length histogram", "protein length (aa)", (x_min, x_max), maxbins=bins),
+                length_barchart(df_f["length"], "Protein length distribution", "length (aa)"),
                 use_container_width=True
             )
-
+            
         st.subheader(f"Top {top_n} amino acids")
         if aa_global:
             aa_df = (

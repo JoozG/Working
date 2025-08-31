@@ -322,6 +322,7 @@ elif mode == "RNA→Protein":
     rows = []
     codon_usage_global = Counter()
     orf_lengths = []
+    orf_examples = {}
 
     def fix_frame(rna_s: str) -> str:
         rna_s = rna_s.upper().strip()
@@ -329,14 +330,17 @@ elif mode == "RNA→Protein":
 
     for sid, rna in seqs.items():
         rna_fixed = fix_frame(rna)
-        conv = rnaConverter(rna)
+        conv = rnaConverter(rna, frame_policy="truncate")
         # protein 1-letter for compactness
         protein_seq = "".join(conv.rna_to_protein(one_letter=True))
         aa_len = len(protein_seq)
         codon_usage_global.update(conv.analyze_codon_usage())
 
-        for orf in conv.find_open_reading_frames():
-            orf_lengths.append(len(orf))
+        orfs = conv.find_open_reading_frames(one_letter=True, include_partial=True, min_len=0)
+        orf_lengths.extend(len(o) for o in orfs)
+        if orfs:
+            # store up to 3 examples per sequence
+            orf_examples[sid] = orfs[:3]
 
         rows.append(
             {
@@ -386,6 +390,12 @@ elif mode == "RNA→Protein":
                 length_barchart(s_orf, "ORF length distribution", "length (aa)"),
                 use_container_width=True
             )
+
+        st.markdown("#### Example ORFs")
+        for sid, orfs in list(orf_examples.items())[:3]:  # show up to 3 sequences with ORFs
+            st.write(f"**{sid}**:")
+            for i, orf in enumerate(orfs, start=1):
+                st.code(orf, language="text")
 
     with t3:
         st.download_button(

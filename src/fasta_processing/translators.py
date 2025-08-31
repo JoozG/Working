@@ -34,25 +34,28 @@ class rnaConverter:
                   "Phe":"F","Cys":"C","Pro":"P","Gln":"Q","Ser":"S","Glu":"E","Thr":"T","Trp":"W",
                   "Gly":"G","Tyr":"Y","His":"H","Val":"V","STOP":"*"}
 
-    def __init__(self, rna_sequence: str):
+    def __init__(self, rna_sequence: str, frame_policy: str = "truncate"):
         self.rna_sequence = rna_sequence.upper()
 
-        if len(self.rna_sequence) % 3 != 0:
-            raise ValueError("RNA sequence length must be a multiple of 3.")
-            self.rna_sequence = self.rna_sequence[: (len(self.rna_sequence)//3)*3]
+        rem = len(self.rna_sequence) % 3
+        if rem != 0:
+            if frame_policy == "truncate":
+                self.rna_sequence = self.rna_sequence[: len(self.rna_sequence) - rem]
+            elif frame_policy == "pad":
+                self.rna_sequence = self.rna_sequence + ("A" * (3 - rem))
+            elif frame_policy == "error":
+                raise ValueError("RNA sequence length must be a multiple of 3.")
+            else:
+                # fallback to truncate if unknown policy
+                self.rna_sequence = self.rna_sequence[: len(self.rna_sequence) - rem]
 
-        self.codons = [self.rna_sequence[i:i+3] for i in range(0, len(self.rna_sequence), 3)]
-
+        self.codons = self.split_into_codons()
     '''
-    FUNCTION 'split_into_codons' - splitting RNA sequence into codones
+    FUNCTION 'split_into_codons' - splitting RNA sequence into codons
     INPUT - string (self.rna_sequence)
-    OUTPUT - list (codone list)
+    OUTPUT - list (codon list)
     '''
     def split_into_codons(self):
-
-        if len(self.rna_sequence) % 3 != 0:
-            raise ValueError("RNA sequence length must be a multiple of 3.")
-        
         return [self.rna_sequence[i:i+3] for i in range(0, len(self.rna_sequence), 3)]
 
     '''
@@ -61,7 +64,7 @@ class rnaConverter:
     OUTPUT - list (protein sequence in a form of single characters)
     '''
     def rna_to_protein(self, stop_on_stop_codon: bool = True, one_letter: bool = True):
-        protein_sequence = []
+        aa_list = []
 
         for codon in self.codons:
             aa3 = self.REVERSED_CODON_DICT.get(codon, None)
@@ -69,35 +72,41 @@ class rnaConverter:
             if aa3 == "STOP":
                 if stop_on_stop_codon:
                     break
-                protein_sequence.append("*" if one_letter else "STOP")
+                aa_list.append("*" if one_letter else "STOP")
 
             elif aa3:
-                protein_sequence.append(self.AA3_TO_AA1[aa3] if one_letter else aa3)
+                aa_list.append(self.AA3_TO_AA1[aa3] if one_letter else aa3)
 
-        return protein_sequence
+        return aa_list
 
     '''
-    FUNCTION 'find_open_reading_frames' - identifies all open ORF (ORF)
+    FUNCTION 'find_open_reading_frames' - identifies all open ORFs starting with AUG and ending with a STOP codon
     INPUT - list (self.codons)
     OUTPUT - list (ORF list)
     '''
-    def find_open_reading_frames(self):
+    def find_open_reading_frames(self, one_letter: bool = True, include_partial: bool = True, min_len: int = 0):
+
         orfs = []
         start_indices = [i for i, codon in enumerate(self.codons) if codon == "AUG"]
 
         for start_index in start_indices:
-            protein_sequence = []
+            aa_list = []
 
             for codon in self.codons[start_index:]:
                 aa3 = self.REVERSED_CODON_DICT.get(codon, None)
 
                 if aa3 == "STOP":
-                    orfs.append(protein_sequence)
+                    orfs.append(aa_list)
                     break
 
                 if aa3:
-                    protein_sequence.append(aa3)
-
+                    aa_list.append(self.AA3_TO_AA1[aa3] if one_letter else aa3)
+            
+            # include ORF that reaches the end without STOP if requested
+            if aa_list and (include_partial or (start_index + len(aa_list) < len(self.codons) and
+                                               self.REVERSED_CODON_DICT.get(self.codons[start_index + len(aa_list)]) == "STOP")):
+                if len(aa_list) >= min_len:
+                    orfs.append("".join(aa_list))
         return orfs
 
     '''

@@ -76,14 +76,24 @@ class proteinOperations:
     def isoelectric_point(self):
         acidic_residues = {'D': 3.9, 'E': 4.3}
         basic_residues = {'K': 10.5, 'R': 12.5, 'H': 6.0}
+
+        total_pKa = 0
+        total_count = 0
         
-        total_acidic = sum(self.amino_acid_list.count(aa) * pKa for aa, pKa in acidic_residues.items())
-        total_basic = sum(self.amino_acid_list.count(aa) * pKa for aa, pKa in basic_residues.items())
-        
-        # Simplified pI calculation (not fully accurate, for educational purposes)
-        if total_acidic + total_basic == 0:
-            return 7.0  # Neutral point for simplicity
-        return round((total_acidic + total_basic) / (len(acidic_residues) + len(basic_residues)), 2)
+        for aa, pKa in acidic_residues.items():
+            count = self.amino_acid_list.count(aa)
+            total_pKa += count * pKa
+            total_count += count
+
+        for aa, pKa in basic_residues.items():
+            count = self.amino_acid_list.count(aa)
+            total_pKa += count * pKa
+            total_count += count
+
+        if total_count == 0:
+            return 7.0
+
+        return round(total_pKa / total_count, 2)
 
     '''
     FUNCTION 'hydrophobicity_score' - calculates the hydrophobicity score of the sequence

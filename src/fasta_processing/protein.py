@@ -74,26 +74,55 @@ class proteinOperations:
     OUTPUT - float (estimated pI)
     '''
     def isoelectric_point(self):
-        acidic_residues = {'D': 3.9, 'E': 4.3}
-        basic_residues = {'K': 10.5, 'R': 12.5, 'H': 6.0}
-
-        total_pKa = 0
-        total_count = 0
+        """
+        Calculates a simplistic isoelectric point based on average pKa values.
+        Based on the procedure from:
+        Sillero A, Ribeiro JM. Isoelectric points of proteins: theoretical determination. Anal Biochem. 1989 Jun;179(2):319-25. doi: 10.1016/0003-2697(89)90136-x. PMID: 2774179.
         
-        for aa, pKa in acidic_residues.items():
-            count = self.amino_acid_list.count(aa)
-            total_pKa += count * pKa
-            total_count += count
+        'Abridged procedure' considers only 4 groups:
+            * Na [N-terminus + Asp + Glu] - pK ~ 4.2
+            * Nb [C-terminus + Cys + Tyr] - pK ~ 9.5
+            * Pa [Lys + Arg] - pK ~ 11.2
+            * Pb [His] - pK ~ 6.4
+        Returns the estimated isoelectric point (pI) rounded to three decimal places.
 
-        for aa, pKa in basic_residues.items():
-            count = self.amino_acid_list.count(aa)
-            total_pKa += count * pKa
-            total_count += count
+        """
+        seq = self.sequence
 
-        if total_count == 0:
-            return 7.0
+        counts = {aa: seq.count(aa) for aa in "DECYHKR"}
+        Na = 1 + counts["D"] + counts["E"]
+        Nb = counts["C"] + counts["Y"]
+        Pa = 1 + counts["K"] + counts["R"]
+        Pb = counts["H"]
 
-        return round(total_pKa / total_count, 2)
+        pK_Na, pK_Nb, pK_Pa, pK_Pb = 4.2, 9.5, 11.2, 6.4
+
+        #Calculates total charge at given pH
+        def total_charge(pH):
+            neg = -Na / (1 + 10**(pK_Na - pH)) - Nb / (1 + 10**(pK_Nb - pH))
+            pos =  Pa / (1 + 10**(pH - pK_Pa)) + Pb / (1 + 10**(pH - pK_Pb))
+            return neg + pos
+
+        # Bisection method to find pI where total charge is zero
+        lo, hi = 3.0, 12.0
+        f_lo, f_hi = total_charge(lo), total_charge(hi)
+
+        # if signs are the same, adjust range
+        if f_lo * f_hi > 0:
+            lo, hi = 2.0, 13.0
+
+        # Bisection loop
+        for _ in range(200):
+            mid = 0.5 * (lo + hi)
+            f_mid = total_charge(mid)
+            if abs(f_mid) < 1e-4 or (hi - lo) < 1e-3:
+                return round(mid, 3)
+            if f_lo * f_mid <= 0:
+                hi, f_hi = mid, f_mid # move hi down
+            else:
+                lo, f_lo = mid, f_mid # move lo up
+
+        return round(0.5 * (lo + hi), 3)
 
     '''
     FUNCTION 'hydrophobicity_score' - calculates the hydrophobicity score of the sequence
